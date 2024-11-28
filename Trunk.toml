@@ -1,0 +1,16 @@
+[build]
+dist = "dist"  # where to output the final files
+public_url = "/"
+release = true
+# minify = "on_release" # can be one of: never, on_release, always
+
+[[copy-dir]]
+source = "public"
+destination = "public"
+
+[[hooks]]
+stage = "pre_build"
+command = "sh"
+command_arguments = ["-c", "npx tailwindcss -i style/tailwind.css -o style/output.css --minify"]
+
+

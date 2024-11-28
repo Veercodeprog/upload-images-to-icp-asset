@@ -1,0 +1,62 @@
+[package]
+name = "upload-images-to-icp-asset"
+version = "0.1.0"
+edition = "2021"
+authors = ["veer-pratap-fueldao <veer@fueldao.io>"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+leptos = { version = "0.6", features = ["csr", "nightly"] }
+leptos_meta = { version = "0.6", features = ["csr", "nightly"] }
+leptos_router = { version = "0.6", features = ["csr", "nightly"] }
+console_log = "1"
+log = "0.4"
+console_error_panic_hook = "0.1"
+candid = "0.10.10"
+gloo-file = "0.3.0"
+gloo = { version = "0.11.0", features = ["file", "futures"] }
+wasm-bindgen = "=0.2.93"
+dotenv = "0.15.0"
+dotenv_codegen = "0.15.0"
+anyhow = "1.0.93"
+candid_parser = "0.1.4"
+convert_case = "0.6.0"
+serde = { version = "1.0.215", features = ["derive"] }
+serde_derive = "1.0.215"
+serde_json = "1.0.133"
+ic-agent = { version = "0.38.2", features = ["wasm-bindgen"]}
+serde_bytes = "0.11.14"
+ic-cdk = "0.16.0"
+
+# utils
+# strum = { version = "0.25", features = ["derive", "strum_macros"] }
+# strum_macros = "0.25"
+
+
+[dev-dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-test = "0.3"
+web-sys = { version = "0.3", features = ["Document", "Window"] }
+
+[build-dependencies]
+serde = { version = "1.0", features = ["derive"] }
+candid_parser = "0.1.1"
+serde_json = "1.0.110"
+convert_case = "0.6.0"
+# dotenv = "0.15.0"
+dotenv_codegen = "0.15.0"
+anyhow = "1.0.86"
+
+[profile.release]
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[package.metadata.leptos]
+output-name = "fuel-dao-frontend"
+tailwind-input-file = "style/tailwind.css"
+tailwind-config-file = "tailwind.config.js"
+
+assets-dir = "public"

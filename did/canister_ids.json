@@ -1,0 +1,12 @@
+{
+  "provision": {
+    "ic": "7amc6-qqaaa-aaaam-acntq-cai",
+    "local": "bd3sg-teaaa-aaaaa-qaaba-cai",
+    "playground": "6fbpb-5iaaa-aaaab-qacta-cai"
+  },
+  "asset_proxy": {
+    "ic": "7amc6-qqaaa-aaaam-acntq-cai",
+    "local": "bd3sg-teaaa-aaaaa-qaaba-cai",
+    "playground": "6ldcj-gyaaa-aaaab-qacsa-cai"
+  }
+}
