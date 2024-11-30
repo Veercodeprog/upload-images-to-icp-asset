@@ -121,7 +121,7 @@ mod build_common {
 
         // create mod file for did bindings
         // ideally i'd like to manually write this file in src/canister/mod.rs
-        // but can't, due to https://github.com/rust-lang/rfcs/issues/752
+        // but can't, due to https://github.com/rust-lang/rfcs/issues/753
         let binding_mod_file = PathBuf::from(&out_dir).join("did").join("mod.rs");
         fs::write(binding_mod_file, did_mod_contents)?;
 

@@ -13,14 +13,14 @@ leptos_router = { version = "0.6", features = ["csr", "nightly"] }
 console_log = "1"
 log = "0.4"
 console_error_panic_hook = "0.1"
-candid = "0.10.10"
 gloo-file = "0.3.0"
 gloo = { version = "0.11.0", features = ["file", "futures"] }
 wasm-bindgen = "=0.2.93"
 dotenv = "0.15.0"
 dotenv_codegen = "0.15.0"
 anyhow = "1.0.93"
-candid_parser = "0.1.4"
+candid_parser = "0.1.1"
+
 convert_case = "0.6.0"
 serde = { version = "1.0.215", features = ["derive"] }
 serde_derive = "1.0.215"
@@ -28,6 +28,11 @@ serde_json = "1.0.133"
 ic-agent = { version = "0.38.2", features = ["wasm-bindgen"]}
 serde_bytes = "0.11.14"
 ic-cdk = "0.16.0"
+candid = "0.10.3"
+web-time = "1.1.0"
+ic-auth-client = "0.2.1"
+web-sys = "0.3"
+futures = "0.3.30"
 
 # utils
 # strum = { version = "0.25", features = ["derive", "strum_macros"] }
@@ -48,11 +53,7 @@ convert_case = "0.6.0"
 dotenv_codegen = "0.15.0"
 anyhow = "1.0.86"
 
-[profile.release]
-opt-level = 'z'
-lto = true
-codegen-units = 1
-panic = "abort"
+
 
 [package.metadata.leptos]
 output-name = "fuel-dao-frontend"

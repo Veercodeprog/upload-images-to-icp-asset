@@ -1,64 +1,68 @@
-use crate::canister::asset_proxy::store;
 use crate::canister::asset_proxy::StoreArg;
+use crate::canister::generated::asset_proxy;
 use crate::canister::provision;
+use crate::state::canisters::Canisters;
+use anyhow::Error; // Ensure you have anyhow for error handling
+use candid::Principal;
 use gloo::file::futures::read_as_bytes;
 use gloo_file::File;
 use leptos::logging::log;
 use leptos::*;
+use serde_bytes::ByteBuf;
 use wasm_bindgen::JsCast;
-
-// use wasm_bindgen_futures::spawn_local;
 use web_sys::{Event, HtmlInputElement};
 
-pub fn upload_files_from_input_event(event: Event) {
-    // Extract the HtmlInputElement from the event
+// Define a type alias for clarity (optional)
+type AssetKey = String;
+
+pub async fn upload_files_from_input_event(event: Event) -> Result<Vec<String>, Error> {
+    let canisters = use_context::<Canisters>().expect("Canisters not found in context");
+
     let input = event
         .target()
         .and_then(|t| t.dyn_into::<HtmlInputElement>().ok());
 
+    let mut asset_keys = Vec::new();
+
     if let Some(input) = input {
         if let Some(file_list) = input.files() {
-            // Perform the upload asynchronously
-            spawn_local(async move {
-                // Iterate over each selected file
-                for i in 0..file_list.length() {
-                    if let Some(file) = file_list.get(i) {
-                        let file = File::from(file);
+            for i in 0..file_list.length() {
+                if let Some(file) = file_list.get(i) {
+                    let file = File::from(file);
 
-                        // Read the file data
-                        let bytes = match read_as_bytes(&file).await {
-                            Ok(bytes) => bytes,
-                            Err(e) => {
-                                log!("Failed to read file data: {:?}", e);
-                                continue;
-                            }
-                        };
+                    let bytes = match read_as_bytes(&file).await {
+                        Ok(bytes) => bytes,
+                        Err(e) => {
+                            log!("Failed to read file data: {:?}", e);
+                            continue;
+                        }
+                    };
 
-                        // Create the StoreArg
-                        let store_arg = StoreArg {
-                            key: format!("file-{}", file.name()),
-                            content_type: file.raw_mime_type(),
-                            content_encoding: "identity".to_string(),
-                            content: bytes,
-                            sha256: None, // Compute SHA-256 if necessary
-                            aliased: Some(false),
-                        };
+                    let store_arg = StoreArg {
+                        key: format!("file-{}", file.name()),
+                        content_type: file.raw_mime_type(),
+                        content_encoding: "identity".to_string(),
+                        content: ByteBuf::from(bytes),
+                        sha256: None,
+                        aliased: Some(false),
+                    };
+                    let asset_id = "6qg6m-4aaaa-aaaab-qacqq-cai";
+                    let asset_principal =
+                        Principal::from_text(asset_id).expect("Invalid principal");
 
-                        // Upload the file using the canister's `store` method
-                        // let client = AssetProxy::from(AssetProxy::canister_id().into());
-                        match store(store_arg).await {
-                            Ok(_) => {
-                                log!("File '{}' stored successfully", file.name());
-                                // Optionally, provide user feedback here
-                            }
-                            Err(e) => {
-                                log!("Failed to store file '{}': {:?}", file.name(), e);
-                                // Optionally, handle the error and provide user feedback
-                            }
+                    match canisters.store_asset(asset_principal, store_arg).await {
+                        Ok(()) => {
+                            log!("File '{}' stored successfully", file.name());
+                            asset_keys.push(format!("file-{}", file.name())); // Push the key
+                        }
+                        Err(e) => {
+                            log!("Failed to store file '{}': {:?}", file.name(), e);
                         }
                     }
                 }
-            });
+            }
         }
     }
+
+    Ok(asset_keys)
 }

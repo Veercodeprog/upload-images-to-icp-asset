@@ -5,12 +5,18 @@ mod outbound;
 // Modules
 mod canister;
 mod components;
+mod consts;
 mod pages;
+mod state;
+// mod stores;
+// mod utils;
+
 // Top-Level pages
 use crate::pages::home::Home;
 use crate::pages::not_found::NotFound;
-
+use crate::state::canisters::Canisters;
 /// An app router which renders the homepage and handles 404's
+
 #[component]
 pub fn App() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.

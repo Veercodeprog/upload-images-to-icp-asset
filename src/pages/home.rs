@@ -1,4 +1,4 @@
-use crate::outbound::upload_files;
+use crate::outbound::upload_files::upload_files_from_input_event;
 use candid::Principal;
 use gloo::file::futures::read_as_bytes;
 use gloo_file::Blob;
@@ -165,7 +165,7 @@ pub fn Home() -> impl IntoView {
                                     set_collection.update(|c| c.id = id);
                                 }
                             }
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            class="block mt-1 w-full rounded-md border-gray-300 shadow-sm"
                             placeholder="Enter the car collection ID"
                         />
                     </label>
@@ -180,7 +180,7 @@ pub fn Home() -> impl IntoView {
                                 let value = event_target_value(&e);
                                 set_collection.update(|c| c.name = value);
                             }
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            class="block mt-1 w-full rounded-md border-gray-300 shadow-sm"
                             placeholder="Enter the car collection name"
                         />
                     </label>
@@ -195,20 +195,20 @@ pub fn Home() -> impl IntoView {
                                 let value = event_target_value(&e);
                                 set_collection.update(|c| c.model = value);
                             }
-                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            class="block mt-1 w-full rounded-md border-gray-300 shadow-sm"
                             placeholder="Enter the car model"
                         />
                     </label>
 
                     // Logo Upload
-                    <div class="mt-4 flex flex-col gap-2">
+                    <div class="flex flex-col gap-2 mt-4">
                         <label class=move || {
                             format!(
                                 "w-min transition-opacity {}",
                                 if uploading.get() { "pointer-events-none opacity-50" } else { "" },
                             )
                         }>
-                            <div class="bg-primary shadow-md rounded-full flex items-center gap-2 font-semibold py-2 px-6 hover:bg-green-600 active:bg-green-500 transition-colors cursor-pointer text-nowrap text-sm text-white">
+                            <div class="flex gap-2 items-center py-2 px-6 text-sm font-semibold text-white rounded-full shadow-md transition-colors cursor-pointer hover:bg-green-600 active:bg-green-500 bg-primary text-nowrap">
                                 <div>
                                     {move || {
                                         if uploading.get() {
@@ -233,12 +233,12 @@ pub fn Home() -> impl IntoView {
 
                     // Display Logo
                     <Show when=move || !collection().logo.is_empty() fallback=|| ()>
-                        <div class="mt-2 h-[14rem] w-[14rem] p-2 border rounded relative">
+                        <div class="relative p-2 mt-2 rounded border h-[14rem] w-[14rem]">
                             <button
                                 on:click=move |_| {
                                     set_collection.update(|c| c.logo.clear());
                                 }
-                                class="bg-white rounded-full flex items-center justify-center w-4 h-4 absolute top-2 right-2"
+                                class="flex absolute top-2 right-2 justify-center items-center w-4 h-4 bg-white rounded-full"
                                 aria-label="Remove logo"
                             >
                                 "X"
@@ -246,14 +246,14 @@ pub fn Home() -> impl IntoView {
                             <img
                                 src=collection().logo.clone()
                                 alt="Logo"
-                                class="h-full w-full rounded-md object-contain"
+                                class="object-contain w-full h-full rounded-md"
                             />
                         </div>
                     </Show>
 
                     // Images Upload and Display
                     <span class="text-sm font-medium leading-6 text-gray-900">"Images:"</span>
-                    <div class="h-[14rem] border rounded p-2 items-center w-full overflow-hidden overflow-x-auto flex gap-2">
+                    <div class="flex overflow-hidden overflow-x-auto gap-2 items-center p-2 w-full rounded border h-[14rem]">
                         <For
                             each=move || collection().images.clone()
                             key=|path| path.clone()
@@ -262,41 +262,47 @@ pub fn Home() -> impl IntoView {
                             move |path| {
                                 let remove_image = remove_image.clone();
                                 let path_clone = path.clone();
+                                        let path_clone1 = path.clone();
+
+                                        let path_clone2 = path.clone();
+
+                                        let path_clone3 = path.clone();
+
                                 view! {
-                                    <div class="p-1 shrink-0 border rounded-md w-52 h-52 relative">
+                                    <div class="relative p-1 w-52 h-52 rounded-md border shrink-0">
                                         <button
-                                            on:click=move |_| remove_image(path_clone.clone())
-                                            class="bg-white rounded-full flex items-center justify-center w-4 h-4 absolute top-2 right-2"
+                                            on:click=move |_| remove_image(path_clone1.clone())
+                                            class="flex absolute top-2 right-2 justify-center items-center w-4 h-4 bg-white rounded-full"
                                             aria-label=move || {
-                                                format!("Remove image {}", path_clone.clone())
+                                                format!("Remove image {}", path_clone2)
                                             }
                                         >
                                             "X"
                                         </button>
                                         <img
-                                            src=path_clone.clone()
-                                            class="h-full w-full rounded-md object-contain"
-                                            alt=move || format!("Image {}", path_clone)
+                                            src=path_clone3.clone()
+                                            class="object-contain w-full h-full rounded-md"
+                                            alt=move || format!("Image {}", path_clone3)
                                         />
                                     </div>
                                 }
                             }
                         </For>
                         <Show when=move || collection().images.is_empty()>
-                            <div class="flex flex-1 text-sm items-center justify-center">
+                            <div class="flex flex-1 justify-center items-center text-sm">
                                 "No images added yet"
                             </div>
                         </Show>
                     </div>
 
-                    <div class="mt-4 flex flex-col gap-2">
+                    <div class="flex flex-col gap-2 mt-4">
                         <label class=move || {
                             format!(
                                 "w-min transition-opacity {}",
                                 if uploading.get() { "pointer-events-none opacity-50" } else { "" },
                             )
                         }>
-                            <div class="bg-primary shadow-md rounded-full flex items-center gap-2 font-semibold py-2 px-6 hover:bg-green-600 active:bg-green-500 transition-colors cursor-pointer text-nowrap text-sm text-white">
+                            <div class="flex gap-2 items-center py-2 px-6 text-sm font-semibold text-white rounded-full shadow-md transition-colors cursor-pointer hover:bg-green-600 active:bg-green-500 bg-primary text-nowrap">
                                 <div>
                                     {move || {
                                         if uploading.get() {
@@ -320,7 +326,7 @@ pub fn Home() -> impl IntoView {
 
                     // Documents Upload and Display
                     <span class="text-sm font-medium leading-6 text-gray-900">"Documents:"</span>
-                    <div class="h-[14rem] border rounded p-2 items-center w-full overflow-hidden overflow-x-auto flex gap-2">
+                    <div class="flex overflow-hidden overflow-x-auto gap-2 items-center p-2 w-full rounded border h-[14rem]">
                         <For
                             each=move || collection().documents.clone()
                             key=|path| path.clone()
@@ -329,24 +335,28 @@ pub fn Home() -> impl IntoView {
                             move |path| {
                                 let remove_document = remove_document.clone();
                                 let path_clone = path.clone();
+                                let path_clone1 = path.clone();
+                                    let path_clone2 = path.clone();
+
+
                                 view! {
-                                    <div class="p-1 shrink-0 border rounded-md w-52 h-52 relative">
+                                    <div class="relative p-1 w-52 h-52 rounded-md border shrink-0">
                                         <button
                                             on:click=move |_| remove_document(path_clone.clone())
-                                            class="bg-white rounded-full flex items-center justify-center w-4 h-4 absolute top-2 right-2"
+                                            class="flex absolute top-2 right-2 justify-center items-center w-4 h-4 bg-white rounded-full"
                                             aria-label=move || {
-                                                format!("Remove document {}", path_clone.clone())
+                                                format!("Remove document {}", path_clone2 )
                                             }
                                         >
                                             "X"
                                         </button>
-                                        <div class="h-full w-full flex items-center justify-center">
+                                        <div class="flex justify-center items-center w-full h-full">
                                             <a
-                                                href=path_clone.clone()
+                                                href=path_clone1.clone()
                                                 class="text-blue-500 underline"
                                                 target="_blank"
                                             >
-                                                {move || format!("Document {}", path_clone)}
+                                                {move || format!("Document {}", path_clone1)}
                                             </a>
                                         </div>
                                     </div>
@@ -354,20 +364,20 @@ pub fn Home() -> impl IntoView {
                             }
                         </For>
                         <Show when=move || collection().documents.is_empty()>
-                            <div class="flex flex-1 text-sm items-center justify-center">
+                            <div class="flex flex-1 justify-center items-center text-sm">
                                 "No documents added yet"
                             </div>
                         </Show>
                     </div>
 
-                    <div class="mt-4 flex flex-col gap-2">
+                    <div class="flex flex-col gap-2 mt-4">
                         <label class=move || {
                             format!(
                                 "w-min transition-opacity {}",
                                 if uploading.get() { "pointer-events-none opacity-50" } else { "" },
                             )
                         }>
-                            <div class="bg-primary shadow-md rounded-full flex items-center gap-2 font-semibold py-2 px-6 hover:bg-green-600 active:bg-green-500 transition-colors cursor-pointer text-nowrap text-sm text-white">
+                            <div class="flex gap-2 items-center py-2 px-6 text-sm font-semibold text-white rounded-full shadow-md transition-colors cursor-pointer hover:bg-green-600 active:bg-green-500 bg-primary text-nowrap">
                                 <div>
                                     {move || {
                                         if uploading.get() {
@@ -398,21 +408,21 @@ pub fn Home() -> impl IntoView {
                                 let checked = event_target_checked(&e);
                                 set_collection.update(|c| c.approved = checked);
                             }
-                            class="form-checkbox h-4 w-4 text-primary transition duration-150 ease-in-out"
+                            class="w-4 h-4 transition duration-150 ease-in-out form-checkbox text-primary"
                         />
                         <span class="ml-2 text-sm leading-5 text-gray-900">"Approved"</span>
                     </label>
 
                     // Error Message
                     <Show when=move || !error_message.get().is_empty()>
-                        <div class="text-red-500 text-sm mt-2">{error_message.get()}</div>
+                        <div class="mt-2 text-sm text-red-500">{error_message.get()}</div>
                     </Show>
 
                     // Submit Button
                     <button
                         type="button"
                         on:click=move |_| {}
-                        class="mt-4 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded"
+                        class="py-2 px-4 mt-4 font-semibold text-white bg-blue-500 rounded hover:bg-blue-600"
                     >
                         "Submit"
                     </button>
