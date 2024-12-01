@@ -8,9 +8,9 @@ release = true
 source = "public"
 destination = "public"
 
-[[hooks]]
-stage = "pre_build"
-command = "sh"
-command_arguments = ["-c", "npx tailwindcss -i style/tailwind.css -o style/output.css --minify"]
+# [[hooks]]
+# stage = "pre_build"
+# command = "sh"
+# command_arguments = ["-c", "npx tailwindcss -i style/tailwind.css -o style/output.css --minify"]
 
 

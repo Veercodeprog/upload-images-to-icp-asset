@@ -10,6 +10,8 @@ authors = ["veer-pratap-fueldao <veer@fueldao.io>"]
 leptos = { version = "0.6", features = ["csr", "nightly"] }
 leptos_meta = { version = "0.6", features = ["csr", "nightly"] }
 leptos_router = { version = "0.6", features = ["csr", "nightly"] }
+leptos-use = "0.12.0"
+
 console_log = "1"
 log = "0.4"
 console_error_panic_hook = "0.1"

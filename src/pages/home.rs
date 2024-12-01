@@ -1,13 +1,18 @@
+use crate::components::header::Header;
 use crate::outbound::upload_files::upload_files_from_input_event;
+use crate::state::auth::AuthService;
+use crate::state::canisters::Canisters;
 use candid::Principal;
 use gloo::file::futures::read_as_bytes;
 use gloo_file::Blob;
 use leptos::logging::log;
 use leptos::*;
+use leptos::*;
+use std::cell::RefCell;
+use std::rc::Rc;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use web_sys::{Event, HtmlInputElement}; // Import the upload function
-
 /// Define the CarCollection struct
 #[derive(Clone)]
 pub struct CarCollection {
@@ -48,8 +53,24 @@ pub fn Home() -> impl IntoView {
     // Uploading state signals (use create_rw_signal)
     let uploading = create_rw_signal(false);
     let uploading_progress = create_rw_signal(0);
+    //
+    // let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
+    //     .expect("Canisters signal not found in context");
 
-    // Handler for file selection (upload)
+    if let Some(canisters_signal) = use_context::<RwSignal<Option<Rc<Canisters>>>>() {
+        let canisters_option = canisters_signal.get();
+        match canisters_option {
+            Some(canisters) => {
+                log!("Canisters instance available");
+                // Use canisters here
+            }
+            None => log!("Canisters instance not yet available"),
+        }
+    } else {
+        log!("Canisters signal context not found");
+    } // Get the current value of the signal
+      // Handler for file selection (upload)
+
     let on_select = {
         let set_collection = set_collection.clone();
         let uploading = uploading.clone();
@@ -70,45 +91,83 @@ pub fn Home() -> impl IntoView {
             let uploading_progress = uploading_progress.clone();
             let error_message = error_message.clone();
 
-            // Call the upload_files_from_input_event function
             spawn_local(async move {
-                match upload_files_from_input_event(event.clone()).await {
-                    Ok(asset_keys) => {
-                        // Update the collection state with the uploaded asset keys
-                        if field == "logo" {
-                            if let Some(asset_key) = asset_keys.first() {
-                                set_collection.update(|c| {
-                                    c.logo = asset_key.clone();
-                                });
+                // let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
+                //     .expect("Canisters signal not found in context");
+                // if let Some(canisters_signal) = use_context::<RwSignal<Option<Rc<Canisters>>>>() {
+                //     let canisters_option = canisters_signal.get();
+                //     match canisters_option {
+                //         Some(canisters) => {
+                //             log!("Canisters instance available");
+                //             // Use canisters here
+                //         }
+                //         None => log!("Canisters instance not yet available"),
+                //     }
+                // } else {
+                //     log!("Canisters signal context not found");
+                // } // Get the current value of the signal
+                // let canisters_option = canisters_signal.clone();
+                let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
+                    .expect("Canisters signal not found in context");
+                let canisters_option = canisters_signal.clone();
+                match canisters_option.get() {
+                    Some(canisters) => {
+                        match upload_files_from_input_event(event.clone(), canisters).await {
+                            Ok(asset_keys) => {
+                                // Handle success
+                                match field {
+                                    "logo" => {
+                                        if let Some(asset_key) = asset_keys.first() {
+                                            set_collection.update(|c| {
+                                                c.logo = asset_key.clone();
+                                            });
+                                        }
+                                    }
+                                    "images" => {
+                                        set_collection.update(|c| {
+                                            c.images.extend(asset_keys.clone());
+                                        });
+                                    }
+                                    "documents" => {
+                                        set_collection.update(|c| {
+                                            c.documents.extend(asset_keys.clone());
+                                        });
+                                    }
+                                    _ => {
+                                        log::warn!("Unknown field: {}", field);
+                                    }
+                                }
+                                uploading_progress.set(100);
                             }
-                        } else if field == "images" {
-                            set_collection.update(|c| {
-                                c.images.extend(asset_keys.clone());
-                            });
-                        } else if field == "documents" {
-                            set_collection.update(|c| {
-                                c.documents.extend(asset_keys.clone());
-                            });
+                            Err(e) => {
+                                // Handle error
+                                log::error!("Upload failed: {:?}", e);
+                                error_message.set(format!("Upload failed: {:?}", e));
+                            }
                         }
-                        uploading_progress.set(100);
                     }
-                    Err(e) => {
-                        log::error!("Upload failed: {:?}", e);
-                        error_message.set(format!("Upload failed: {:?}", e));
+                    None => {
+                        log::error!("Canisters not available. Please log in.");
+                        error_message.set("Canisters not available. Please log in.".to_string());
                     }
                 }
+
                 uploading.set(false);
-                // Clear the file input value
-                if let Some(input) = event
+
+                match event
                     .target()
                     .and_then(|t| t.dyn_into::<HtmlInputElement>().ok())
                 {
-                    input.set_value("");
+                    Some(input) => {
+                        input.set_value("");
+                    }
+                    None => {
+                        log::warn!("Could not clear input field");
+                    }
                 }
             });
         }
     };
-
     // Remove image handler
     let remove_image = {
         let set_collection = set_collection.clone();
@@ -132,6 +191,7 @@ pub fn Home() -> impl IntoView {
     view! {
         <ErrorBoundary fallback=|errors| {
             view! {
+                <Header />
                 <h1>"Uh oh! Something went wrong!"</h1>
 
                 <p>"Errors: "</p>
@@ -259,15 +319,13 @@ pub fn Home() -> impl IntoView {
                             key=|path| path.clone()
                             let:path
                         >
-                            move |path| {
+                            move |path|
+                            {
                                 let remove_image = remove_image.clone();
                                 let path_clone = path.clone();
-                                        let path_clone1 = path.clone();
-
-                                        let path_clone2 = path.clone();
-
-                                        let path_clone3 = path.clone();
-
+                                let path_clone1 = path.clone();
+                                let path_clone2 = path.clone();
+                                let path_clone3 = path.clone();
                                 view! {
                                     <div class="relative p-1 w-52 h-52 rounded-md border shrink-0">
                                         <button
@@ -332,20 +390,19 @@ pub fn Home() -> impl IntoView {
                             key=|path| path.clone()
                             let:path
                         >
-                            move |path| {
+                            move |path|
+                            {
                                 let remove_document = remove_document.clone();
                                 let path_clone = path.clone();
                                 let path_clone1 = path.clone();
-                                    let path_clone2 = path.clone();
-
-
+                                let path_clone2 = path.clone();
                                 view! {
                                     <div class="relative p-1 w-52 h-52 rounded-md border shrink-0">
                                         <button
                                             on:click=move |_| remove_document(path_clone.clone())
                                             class="flex absolute top-2 right-2 justify-center items-center w-4 h-4 bg-white rounded-full"
                                             aria-label=move || {
-                                                format!("Remove document {}", path_clone2 )
+                                                format!("Remove document {}", path_clone2)
                                             }
                                         >
                                             "X"

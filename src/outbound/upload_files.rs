@@ -1,6 +1,8 @@
+use crate::canister::asset_proxy::AssetProxy;
 use crate::canister::asset_proxy::StoreArg;
 use crate::canister::generated::asset_proxy;
 use crate::canister::provision;
+use crate::state::auth::AuthService;
 use crate::state::canisters::Canisters;
 use anyhow::Error; // Ensure you have anyhow for error handling
 use candid::Principal;
@@ -9,14 +11,18 @@ use gloo_file::File;
 use leptos::logging::log;
 use leptos::*;
 use serde_bytes::ByteBuf;
+use std::cell::RefCell;
+use std::rc::Rc;
 use wasm_bindgen::JsCast;
 use web_sys::{Event, HtmlInputElement};
-
 // Define a type alias for clarity (optional)
 type AssetKey = String;
 
-pub async fn upload_files_from_input_event(event: Event) -> Result<Vec<String>, Error> {
-    let canisters = use_context::<Canisters>().expect("Canisters not found in context");
+pub async fn upload_files_from_input_event(
+    event: Event,
+    canisters: Rc<Canisters>,
+) -> Result<Vec<String>, Error> {
+    log!("Handling event: Canisters present.");
 
     let input = event
         .target()
@@ -50,6 +56,7 @@ pub async fn upload_files_from_input_event(event: Event) -> Result<Vec<String>, 
                     let asset_principal =
                         Principal::from_text(asset_id).expect("Invalid principal");
 
+                    // Call `store_asset` on the Canisters instance
                     match canisters.store_asset(asset_principal, store_arg).await {
                         Ok(()) => {
                             log!("File '{}' stored successfully", file.name());

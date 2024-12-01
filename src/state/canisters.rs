@@ -1,5 +1,6 @@
 // canisters.rs
 // use crate::canister::asset_proxy::AssetProxy;
+use crate::canister::asset_proxy::StoreArg;
 use crate::canister::generated::asset_proxy::AssetProxy;
 use crate::canister::provision::Provision;
 
@@ -47,7 +48,22 @@ impl Canisters {
         let agent_ref: &Agent = &self.agent;
         AssetProxy(canister_id, agent_ref)
     }
+    pub async fn store(&self, canister_id: Principal, store_arg: StoreArg) -> Result<(), String> {
+        // Create an instance of AssetProxy for the given canister ID
+        let asset_proxy = self.asset_proxy_canister(canister_id).await;
 
+        // Call the store method and handle errors
+        match asset_proxy.store(store_arg).await {
+            Ok(_) => {
+                log::info!("Asset stored successfully.");
+                Ok(())
+            }
+            Err(err) => {
+                log::error!("Failed to store asset: {:?}", err);
+                Err(format!("Error storing asset: {:?}", err))
+            }
+        }
+    }
     pub async fn store_asset<T: candid::CandidType>(
         &self,
         asset_canister_id: Principal,
