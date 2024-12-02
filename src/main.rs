@@ -10,18 +10,22 @@ use std::cell::RefCell;
 use std::rc::Rc;
 use upload_images_to_icp_asset::App;
 mod canister;
+
 #[component]
-fn AuthServiceProvider(children: Children) -> impl IntoView {
+fn AuthServiceProvider(children: ChildrenFn) -> impl IntoView {
     let auth_service = Rc::new(RefCell::new(
         AuthService::new().expect("Failed to create AuthService"),
     ));
     provide_context(auth_service.clone());
 
-    let canisters_signal = create_rw_signal(None);
-    provide_context(canisters_signal);
+    // Create the signal for Canisters and provide it
+    let canisters_signal: RwSignal<Option<Rc<Canisters>>> = create_rw_signal(None);
+    provide_context(canisters_signal.clone());
 
+    // Initialize Canisters asynchronously
     spawn_local({
         let auth_service = auth_service.clone();
+        let canisters_signal = canisters_signal.clone(); // Clone signal for async move
         async move {
             match Canisters::new(auth_service).await {
                 Ok(canisters_instance) => {
@@ -32,8 +36,15 @@ fn AuthServiceProvider(children: Children) -> impl IntoView {
             }
         }
     });
-    // Provide AuthService as a context
-    children()
+
+    view! {
+        <Suspense fallback=move || {
+            view! { <div>"Loading..."</div> }
+        }>
+            // Now you can safely call children()
+            {children()}
+        </Suspense>
+    }
 }
 fn main() {
     // set up logging
