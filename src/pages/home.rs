@@ -55,15 +55,15 @@ pub fn Home() -> impl IntoView {
     let uploading_progress = create_rw_signal(0);
     // let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
     //     .expect("Canisters signal not found in context");
-    let auth_service =
-        use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
-
-    // Reactive signal for authentication state
-    let is_authenticated = create_memo({
-        let auth_service = Rc::clone(&auth_service);
-        move |_| auth_service.borrow().is_authenticated()
-    });
-
+    // let auth_service =
+    //     use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
+    //
+    // // Reactive signal for authentication state
+    // let is_authenticated = create_memo({
+    //     let auth_service = Rc::clone(&auth_service);
+    //     move |_| auth_service.borrow().is_authenticated()
+    // });
+    //
     let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
         .expect("Canisters signal should be provided by AuthServiceProvider");
 
