@@ -1,0 +1,8 @@
+{
+  "canisters": {
+    "upload-images-to-icp-asset": {
+      "source": ["dist"],
+      "type": "assets"
+    }
+  }
+}

@@ -55,15 +55,15 @@ pub fn Home() -> impl IntoView {
     let uploading_progress = create_rw_signal(0);
     // let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
     //     .expect("Canisters signal not found in context");
-    // let auth_service =
-    //     use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
-    //
-    // // Reactive signal for authentication state
-    // let is_authenticated = create_memo({
-    //     let auth_service = Rc::clone(&auth_service);
-    //     move |_| auth_service.borrow().is_authenticated()
-    // });
-    //
+    let auth_service =
+        use_context::<Rc<RefCell<AuthService>>>().expect("AuthService context must be provided");
+
+    // Reactive signal for authentication state
+    let is_authenticated = create_memo({
+        let auth_service = Rc::clone(&auth_service);
+        move |_| auth_service.borrow().is_authenticated()
+    });
+
     let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
         .expect("Canisters signal should be provided by AuthServiceProvider");
 
@@ -80,8 +80,7 @@ pub fn Home() -> impl IntoView {
         log!("Canisters signal context not found");
     } // Get the current value of the signal
       // Handler for file selection (upload)
-    let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-        .expect("Canisters signal not found in context");
+
     let canisters_option = canisters_signal.clone();
     let on_select = {
         let set_collection = set_collection.clone();
@@ -104,21 +103,6 @@ pub fn Home() -> impl IntoView {
             let error_message = error_message.clone();
 
             spawn_local(async move {
-                // let canisters_signal = use_context::<RwSignal<Option<Rc<Canisters>>>>()
-                //     .expect("Canisters signal not found in context");
-                // if let Some(canisters_signal) = use_context::<RwSignal<Option<Rc<Canisters>>>>() {
-                //     let canisters_option = canisters_signal.get();
-                //     match canisters_option {
-                //         Some(canisters) => {
-                //             log!("Canisters instance available");
-                //             // Use canisters here
-                //         }
-                //         None => log!("Canisters instance not yet available"),
-                //     }
-                // } else {
-                //     log!("Canisters signal context not found");
-                // } // Get the current value of the signal
-                // let canisters_option = canisters_signal.clone();
                 match canisters_option.get() {
                     Some(canisters) => {
                         match upload_files_from_input_event(event.clone(), canisters).await {

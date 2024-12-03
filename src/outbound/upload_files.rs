@@ -52,14 +52,20 @@ pub async fn upload_files_from_input_event(
                         sha256: None,
                         aliased: Some(false),
                     };
-                    let asset_id = "6qg6m-4aaaa-aaaab-qacqq-cai";
+                    let asset_id = "unuoe-3aaaa-aaaai-q3nda-cai";
                     let asset_principal =
                         Principal::from_text(asset_id).expect("Invalid principal");
 
                     // Call `store_asset` on the Canisters instance
-                    match canisters.store_asset(asset_principal, store_arg).await {
+                    match canisters
+                        .store_asset(asset_principal, store_arg.clone())
+                        .await
+                    {
                         Ok(()) => {
                             log!("File '{}' stored successfully", file.name());
+
+                            log!("https://{}.icp0.io{}/", asset_id, store_arg.key);
+                            // asset_urls.push(asset_url);
                             asset_keys.push(format!("file-{}", file.name())); // Push the key
                         }
                         Err(e) => {
