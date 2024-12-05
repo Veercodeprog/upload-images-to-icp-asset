@@ -205,6 +205,7 @@ pub fn Home() -> impl IntoView {
                 <h1>"Car Collection Form"</h1>
 
                 <form class="flex flex-col gap-4">
+                    <Header />
 
                     // ID Field
                     <label class="block">

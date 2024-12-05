@@ -66,13 +66,10 @@ fn UserPrincipal() -> impl IntoView {
             when=move || is_authenticated()
             fallback=move || {
                 view! {
-                    <a
-                        // on:click=move |_| handle_login.dispatch(())
-                        href="/login"
+                    <button
+                        on:click=move |_| handle_login.dispatch(())
                         class="p-2 text-white bg-black rounded-full"
-                        target="_blank"
                     >
-
                         <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
@@ -87,23 +84,33 @@ fn UserPrincipal() -> impl IntoView {
                                 d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"
                             ></path>
                         </svg>
-                    </a>
+                    </button>
                 }
             }
         >
-            // <div>{"user: "}{move || principal().map(|p| p.to_text()).unwrap_or_default()}</div>
+            <div>{"user: "}{move || principal().map(|p| p.to_text()).unwrap_or_default()}</div>
 
             <div class="flex items-center space-x-2">
 
-                <a
-                    // on:click=move |_| handle_logout.dispatch(())
-                    href="/login"
-                    class="flex justify-center items-center w-10 h-10 text-xl font-light text-white uppercase bg-black rounded-full select-none"
-                    target="_blank"
+                <button
+                    on:click=move |_| handle_logout.dispatch(())
+                    class="p-2 text-white bg-red-500 rounded-full"
                 >
-
-                    U
-                </a>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke-width="1.5"
+                        stroke="currentColor"
+                        class="w-4 h-4"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"
+                        />
+                    </svg>
+                </button>
             </div>
         </Show>
     }

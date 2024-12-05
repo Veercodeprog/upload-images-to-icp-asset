@@ -3650,6 +3650,7 @@ dependencies = [
  "serde_bytes",
  "serde_derive",
  "serde_json",
+ "sha2 0.10.8",
  "wasm-bindgen",
  "wasm-bindgen-test",
  "web-sys",

@@ -11,10 +11,12 @@ use gloo_file::File;
 use leptos::logging::log;
 use leptos::*;
 use serde_bytes::ByteBuf;
+use sha2::{Digest, Sha256};
 use std::cell::RefCell;
 use std::rc::Rc;
 use wasm_bindgen::JsCast;
 use web_sys::{Event, HtmlInputElement};
+
 // Define a type alias for clarity (optional)
 type AssetKey = String;
 
@@ -35,41 +37,50 @@ pub async fn upload_files_from_input_event(
             for i in 0..file_list.length() {
                 if let Some(file) = file_list.get(i) {
                     let file = File::from(file);
+                    log!("Preparing to upload file: {}", file.name());
 
                     let bytes = match read_as_bytes(&file).await {
-                        Ok(bytes) => bytes,
+                        Ok(bytes) => {
+                            log!("Read {} bytes from file: {}", bytes.len(), file.name());
+                            bytes
+                        }
                         Err(e) => {
-                            log!("Failed to read file data: {:?}", e);
+                            log!("Failed to read file data for {}: {:?}", file.name(), e);
                             continue;
                         }
                     };
+                    let computed_hash = Sha256::digest(&bytes);
+                    let sha256 = Some(ByteBuf::from(computed_hash.to_vec()));
+                    log!("Computed SHA-256 for {}: {:x}", file.name(), computed_hash);
 
                     let store_arg = StoreArg {
-                        key: format!("file-{}", file.name()),
+                        key: format!("/file-{}", file.name()),
                         content_type: file.raw_mime_type(),
                         content_encoding: "identity".to_string(),
                         content: ByteBuf::from(bytes),
-                        sha256: None,
-                        aliased: Some(false),
+                        sha256, // Provide the computed hash
+                                // aliased: Some(false), // Explicitly set aliased
                     };
-                    let asset_id = "unuoe-3aaaa-aaaai-q3nda-cai";
+                    let asset_id = "zcs7y-5iaaa-aaaam-adxfq-cai";
+
                     let asset_principal =
                         Principal::from_text(asset_id).expect("Invalid principal");
+                    log!("Uploading file: {}, Principal: {}", store_arg.key, asset_id);
 
+                    log!("file name: {}  ", file.name());
                     // Call `store_asset` on the Canisters instance
                     match canisters
                         .store_asset(asset_principal, store_arg.clone())
                         .await
                     {
-                        Ok(()) => {
-                            log!("File '{}' stored successfully", file.name());
-
-                            log!("https://{}.icp0.io{}/", asset_id, store_arg.key);
-                            // asset_urls.push(asset_url);
-                            asset_keys.push(format!("file-{}", file.name())); // Push the key
+                        Ok(_) => {
+                            log!("Successfully uploaded asset: {}", store_arg.key);
+                            log!("https://{}.raw.icp0.io{}", asset_id, store_arg.key);
+                            log!("https://{}.icp0.io{}", asset_id, store_arg.key);
+                            asset_keys.push(store_arg.key);
                         }
                         Err(e) => {
-                            log!("Failed to store file '{}': {:?}", file.name(), e);
+                            log!("Failed to upload asset {}: {:?}", store_arg.key, e);
                         }
                     }
                 }
